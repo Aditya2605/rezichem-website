@@ -330,11 +330,17 @@ const products = await getAllProducts();
 |---|---|---|
 | `DATABASE_URL` | For real DB | PostgreSQL connection string |
 | `NEXT_PUBLIC_SITE_URL` | Yes | Full URL — used in sitemap & Open Graph |
-| `NEXTAUTH_SECRET` | When adding admin auth | Random 32-byte secret |
-| `NEXTAUTH_URL` | When adding admin auth | Same as `NEXT_PUBLIC_SITE_URL` |
+| `ADMIN_EMAIL` | Yes (for admin login) | Admin login email |
+| `ADMIN_PASSWORD` | Yes (for admin login) | Admin login password |
+| `ADMIN_SESSION_SECRET` | Yes (for admin login) | Random 32-byte secret used to sign admin sessions |
+| `AWS_REGION` | Yes (for uploads) | AWS region for S3 bucket |
+| `AWS_ACCESS_KEY_ID` | Yes (for uploads) | S3 access key |
+| `AWS_SECRET_ACCESS_KEY` | Yes (for uploads) | S3 secret key |
+| `AWS_S3_BUCKET` | Yes (for uploads) | Bucket name |
+| `AWS_S3_PUBLIC_BASE_URL` | Yes (for uploads) | Public S3 base URL used in DB URLs |
 
 ```bash
-# Generate a secure NEXTAUTH_SECRET
+# Generate a secure ADMIN_SESSION_SECRET
 openssl rand -base64 32
 ```
 

@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import { Category, Product } from '@/types';
+import { Category, Product, SiteAsset } from '@/types';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -239,4 +239,34 @@ export async function updateProduct(
 
 export async function deleteProduct(id: number): Promise<void> {
   await query('DELETE FROM products WHERE id=$1', [id]);
+}
+
+// ─── Site Assets (brochure/catalogue links) ──────────────────────────────────
+
+export async function getSiteAssets(): Promise<SiteAsset[]> {
+  return query<SiteAsset>(`
+    SELECT key, url, updated_at
+    FROM site_assets
+    ORDER BY key
+  `);
+}
+
+export async function getSiteAssetsMap(): Promise<Record<string, string>> {
+  const rows = await getSiteAssets();
+  return rows.reduce<Record<string, string>>((acc, row) => {
+    acc[row.key] = row.url;
+    return acc;
+  }, {});
+}
+
+export async function upsertSiteAsset(key: string, url: string): Promise<SiteAsset> {
+  const rows = await query<SiteAsset>(`
+    INSERT INTO site_assets (key, url)
+    VALUES ($1, $2)
+    ON CONFLICT (key) DO UPDATE
+      SET url = EXCLUDED.url,
+          updated_at = NOW()
+    RETURNING key, url, updated_at
+  `, [key, url]);
+  return rows[0];
 }

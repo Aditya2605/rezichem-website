@@ -1,7 +1,40 @@
+'use client';
+
 import Link from 'next/link';
-import { Pill, MapPin, Phone, Mail, Linkedin, Facebook, Instagram, Download } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Pill, MapPin, Phone, Mail, Linkedin, Facebook, Instagram, Download, Package } from 'lucide-react';
 
 export default function Footer() {
+  const [assets, setAssets] = useState({
+    brochure: '/downloads/company-brochure.pdf',
+    catalogue: '/downloads/product-catalogue.pdf',
+    logo: '',
+    linkedin: '',
+    facebook: '',
+    instagram: '',
+  });
+
+  useEffect(() => {
+    fetch('/api/site-assets')
+      .then(r => r.json())
+      .then(d => {
+        const assets = (d.assets ?? []) as Array<{ key: string; url: string }>;
+        const map = assets.reduce<Record<string, string>>((acc, row) => {
+          acc[row.key] = row.url;
+          return acc;
+        }, {});
+        setAssets({
+          brochure: map.company_brochure_pdf_url || '/downloads/company-brochure.pdf',
+          catalogue: map.product_catalogue_pdf_url || '/downloads/product-catalogue.pdf',
+          logo: map.company_logo_url || '',
+          linkedin: map.social_linkedin_url || '',
+          facebook: map.social_facebook_url || '',
+          instagram: map.social_instagram_url || '',
+        });
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <footer className="bg-neutral-900 text-neutral-300">
       <div className="container-xl py-14">
@@ -10,9 +43,14 @@ export default function Footer() {
           {/* Company */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
-                <Pill className="w-4 h-4 text-white" />
-              </div>
+              {assets.logo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={assets.logo} alt="Rezichem logo" className="h-8 w-auto object-contain" />
+              ) : (
+                <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
+                  <Pill className="w-4 h-4 text-white" />
+                </div>
+              )}
               <span className="font-display text-white font-bold text-base">Rezichem Healthcare</span>
             </div>
             <p className="text-sm text-neutral-400 leading-relaxed mb-5">
@@ -30,9 +68,15 @@ export default function Footer() {
           <div>
             <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-4">Products</p>
             <div className="space-y-2">
-              <Link href="/products" className="block text-sm hover:text-primary-400 transition-colors">Browse All Products</Link>
+              <Link
+                href="/products"
+                className="flex items-center gap-1.5 text-sm hover:text-primary-400 transition-colors"
+              >
+                <Package className="w-3.5 h-3.5" />
+                Browse All Products
+              </Link>
               <a
-                href="/downloads/product-catalogue.pdf"
+                href={assets.catalogue}
                 download
                 className="flex items-center gap-1.5 text-sm hover:text-primary-400 transition-colors"
               >
@@ -40,7 +84,7 @@ export default function Footer() {
                 Download Product List
               </a>
               <a
-                href="/downloads/company-brochure.pdf"
+                href={assets.brochure}
                 download
                 className="flex items-center gap-1.5 text-sm hover:text-primary-400 transition-colors"
               >
@@ -83,13 +127,37 @@ export default function Footer() {
 
             {/* Social */}
             <div className="flex items-center gap-3 mt-5">
-              <a href="#" aria-label="LinkedIn" className="w-8 h-8 bg-neutral-800 hover:bg-primary-600 rounded-lg flex items-center justify-center transition-colors">
+              <a
+                href={assets.linkedin || '#'}
+                target={assets.linkedin ? '_blank' : undefined}
+                rel={assets.linkedin ? 'noopener noreferrer' : undefined}
+                aria-label="LinkedIn"
+                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                  assets.linkedin ? 'bg-neutral-800 hover:bg-primary-600' : 'bg-neutral-800/50 cursor-default'
+                }`}
+              >
                 <Linkedin className="w-4 h-4" />
               </a>
-              <a href="#" aria-label="Facebook" className="w-8 h-8 bg-neutral-800 hover:bg-primary-600 rounded-lg flex items-center justify-center transition-colors">
+              <a
+                href={assets.facebook || '#'}
+                target={assets.facebook ? '_blank' : undefined}
+                rel={assets.facebook ? 'noopener noreferrer' : undefined}
+                aria-label="Facebook"
+                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                  assets.facebook ? 'bg-neutral-800 hover:bg-primary-600' : 'bg-neutral-800/50 cursor-default'
+                }`}
+              >
                 <Facebook className="w-4 h-4" />
               </a>
-              <a href="#" aria-label="Instagram" className="w-8 h-8 bg-neutral-800 hover:bg-primary-600 rounded-lg flex items-center justify-center transition-colors">
+              <a
+                href={assets.instagram || '#'}
+                target={assets.instagram ? '_blank' : undefined}
+                rel={assets.instagram ? 'noopener noreferrer' : undefined}
+                aria-label="Instagram"
+                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                  assets.instagram ? 'bg-neutral-800 hover:bg-primary-600' : 'bg-neutral-800/50 cursor-default'
+                }`}
+              >
                 <Instagram className="w-4 h-4" />
               </a>
             </div>

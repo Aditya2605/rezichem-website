@@ -43,3 +43,19 @@ SET is_featured = true
 WHERE id IN (
   SELECT id FROM products ORDER BY name LIMIT 6
 );
+
+-- 8. Site assets (brochure/catalogue URLs)
+CREATE TABLE IF NOT EXISTS site_assets (
+  key        VARCHAR(80) PRIMARY KEY,
+  url        TEXT        NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO site_assets (key, url) VALUES
+  ('company_brochure_pdf_url', '/downloads/company-brochure.pdf'),
+  ('product_catalogue_pdf_url', '/downloads/product-catalogue.pdf'),
+  ('company_logo_url', ''),
+  ('social_linkedin_url', ''),
+  ('social_facebook_url', ''),
+  ('social_instagram_url', '')
+ON CONFLICT (key) DO NOTHING;

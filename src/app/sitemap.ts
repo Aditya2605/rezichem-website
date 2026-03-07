@@ -1,8 +1,10 @@
 import { MetadataRoute } from 'next';
 import { getAllCategories, getAllProducts } from '@/lib/db';
 
+export const revalidate = 3600;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rezichem.co.in';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rezichem.com';
 
   let categories: { slug: string }[] = [];
   let products: { category_slug?: string; slug: string }[] = [];

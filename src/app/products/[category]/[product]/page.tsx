@@ -9,16 +9,23 @@ interface Props {
   params: { category: string; product: string };
 }
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rezichem.com';
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProductBySlug(params.category, params.product);
   if (!product) return { title: 'Product Not Found' };
+
+  const canonicalPath = `/products/${product.category_slug}/${product.slug}`;
   return {
     title: product.name,
     description: `${product.name} – ${product.composition}. ${product.description ?? ''}`,
+    alternates: { canonical: canonicalPath },
     openGraph: {
       title: `${product.name} | Rezichem Health Care`,
       description: product.description ?? product.composition ?? '',
+      url: `${SITE_URL}${canonicalPath}`,
       type: 'website',
+      images: product.image_url ? [{ url: product.image_url }] : undefined,
     },
   };
 }
@@ -28,6 +35,7 @@ export default async function ProductDetailPage({ params }: Props) {
   if (!product) notFound();
 
   const related = await getRelatedProducts(product.category_id, product.id, 4);
+  const hasImage = typeof product.image_url === 'string' && product.image_url.trim().length > 0;
 
   const details = [
     { icon: FlaskConical, label: 'Composition', value: product.composition },
@@ -72,10 +80,20 @@ export default async function ProductDetailPage({ params }: Props) {
       <section className="section-pad bg-white">
         <div className="container-xl">
           <div className="grid md:grid-cols-2 gap-12 items-start">
-            {/* Placeholder image */}
-            <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-2xl h-80 md:h-96 flex items-center justify-center">
-              <Pill className="w-24 h-24 text-primary-200" />
-            </div>
+            {hasImage ? (
+              <div className="rounded-2xl h-80 md:h-96 overflow-hidden bg-neutral-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={product.image_url as string}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-2xl h-80 md:h-96 flex items-center justify-center">
+                <Pill className="w-24 h-24 text-primary-200" />
+              </div>
+            )}
 
             {/* Info */}
             <div>

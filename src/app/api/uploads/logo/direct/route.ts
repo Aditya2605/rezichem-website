@@ -1,27 +1,9 @@
-import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { ADMIN_SESSION_COOKIE, verifyAdminSessionToken } from '@/lib/admin-auth';
 
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
-const ALLOWED_TYPES = new Set([
-  'image/jpeg',
-  'image/jpg',
-  'image/png',
-  'image/webp',
-  'image/gif',
-]);
-
-function sanitizeFilename(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9._-]/g, '')
-    .replace(/-+/g, '-')
-    .slice(0, 80);
-}
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 
 function requiredEnv(name: string): string {
   const value = process.env[name];
@@ -36,18 +18,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { filename, contentType, size } = await req.json();
+    const form = await req.formData();
+    const file = form.get('file');
 
-    if (!filename || !contentType || typeof size !== 'number') {
-      return NextResponse.json({ error: 'filename, contentType and size are required' }, { status: 400 });
+    if (!(file instanceof File)) {
+      return NextResponse.json({ error: 'file is required' }, { status: 400 });
     }
 
-    if (!ALLOWED_TYPES.has(contentType)) {
+    if (!file.type?.startsWith('image/')) {
       return NextResponse.json({ error: 'Unsupported file type' }, { status: 400 });
     }
 
-    if (size > MAX_FILE_SIZE_BYTES) {
-      return NextResponse.json({ error: 'File too large (max 5MB)' }, { status: 400 });
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      return NextResponse.json({ error: 'File too large (max 10MB)' }, { status: 400 });
     }
 
     const region = requiredEnv('AWS_REGION');
@@ -62,28 +45,29 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const safeName = sanitizeFilename(filename);
-    const key = `products/${new Date().toISOString().slice(0, 10)}/${randomUUID()}-${safeName}`;
+    const key = 'banners/logo/company-logo';
+    const body = Buffer.from(await file.arrayBuffer());
 
-    const command = new PutObjectCommand({
+    await client.send(new PutObjectCommand({
       Bucket: bucket,
       Key: key,
-      ContentType: contentType,
+      Body: body,
+      ContentType: file.type,
       CacheControl: 'public, max-age=31536000, immutable',
-    });
+    }));
 
-    const uploadUrl = await getSignedUrl(client, command, { expiresIn: 300 });
     const fileUrl = `${publicBaseUrl}/${key}`;
-
+    const version = Date.now().toString();
     return NextResponse.json({
-      uploadUrl,
       fileUrl,
+      versionedUrl: `${fileUrl}?v=${version}`,
+      version,
       key,
       maxFileSizeBytes: MAX_FILE_SIZE_BYTES,
     });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Failed to create upload URL';
-    console.error('POST /api/uploads/product-image', err);
+    const msg = err instanceof Error ? err.message : 'Failed to upload logo';
+    console.error('POST /api/uploads/logo/direct', err);
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

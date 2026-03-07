@@ -9,12 +9,24 @@ interface Props {
   params: { category: string };
 }
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rezichem.com';
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const category = await getCategoryBySlug(params.category);
   if (!category) return { title: 'Category Not Found' };
+  const canonicalPath = `/products/${category.slug}`;
+
   return {
     title: category.name,
     description: `Browse ${category.name} products from Rezichem Health Care. ${category.description ?? ''}`,
+    alternates: { canonical: canonicalPath },
+    openGraph: {
+      title: `${category.name} | Rezichem Healthcare`,
+      description: category.description ?? `Browse ${category.name} products from Rezichem Health Care.`,
+      url: `${SITE_URL}${canonicalPath}`,
+      type: 'website',
+      images: category.image_url ? [{ url: category.image_url }] : undefined,
+    },
   };
 }
 

@@ -16,20 +16,52 @@ const fadeUp = {
   }),
 };
 
-const stats = [
-  { icon: FlaskConical, label: 'Products', value: '200+' },
-  { icon: Award, label: 'Years of Excellence', value: '15+' },
-  { icon: Users, label: 'Healthcare Partners', value: '500+' },
-  { icon: Truck, label: 'States Covered', value: '20+' },
-];
-
 export default function HomePage() {
   const [featured, setFeatured] = useState<Product[]>([]);
+  const [productCount, setProductCount] = useState<number | null>(null);
+  const [downloadLinks, setDownloadLinks] = useState({
+    brochure: '/downloads/company-brochure.pdf',
+    catalogue: '/downloads/product-catalogue.pdf',
+  });
+
+  const stats = [
+    { icon: FlaskConical, label: 'Products', value: `${productCount ?? 100}+` },
+    { icon: Award, label: 'Years of Excellence', value: '15+' },
+    { icon: Users, label: 'Healthcare Partners', value: '500+' },
+    { icon: Truck, label: 'States Covered', value: '20+' },
+  ];
 
   useEffect(() => {
     fetch('/api/products?featured=true&limit=6')
       .then(r => r.json())
       .then(d => setFeatured(d.products ?? []))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/products')
+      .then(r => r.json())
+      .then(d => {
+        const products = Array.isArray(d.products) ? d.products : [];
+        if (products.length > 0) setProductCount(products.length);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/site-assets')
+      .then(r => r.json())
+      .then(d => {
+        const assets = (d.assets ?? []) as Array<{ key: string; url: string }>;
+        const map = assets.reduce<Record<string, string>>((acc, row) => {
+          acc[row.key] = row.url;
+          return acc;
+        }, {});
+        setDownloadLinks({
+          brochure: map.company_brochure_pdf_url || '/downloads/company-brochure.pdf',
+          catalogue: map.product_catalogue_pdf_url || '/downloads/product-catalogue.pdf',
+        });
+      })
       .catch(() => {});
   }, []);
 
@@ -79,11 +111,18 @@ export default function HomePage() {
                 Explore Products <ArrowRight className="w-4 h-4" />
               </Link>
               <a
-                href="/downloads/company-brochure.pdf"
+                href={downloadLinks.brochure}
                 download
                 className="btn-outline border-white/30 text-white hover:bg-white/10 hover:border-white/60 text-base px-8 py-3.5"
               >
                 <Download className="w-4 h-4" /> Download Brochure
+              </a>
+              <a
+                href={downloadLinks.catalogue}
+                download
+                className="btn-outline border-white/30 text-white hover:bg-white/10 hover:border-white/60 text-base px-8 py-3.5"
+              >
+                <Download className="w-4 h-4" /> Download Product List
               </a>
             </motion.div>
           </div>
@@ -191,44 +230,6 @@ export default function HomePage() {
           </div>
         </section>
       )}
-
-      {/* ── Downloads ────────────────────────────────────────────────────── */}
-      <section className="section-pad bg-primary-50">
-        <div className="container-xl">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl md:text-4xl font-display text-neutral-800 mb-3">Downloads</h2>
-            <p className="text-neutral-600">Access our brochures and product catalogues</p>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
-            <a
-              href="/downloads/company-brochure.pdf"
-              download
-              className="card p-6 flex items-center gap-4 group"
-            >
-              <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-primary-600 transition-colors">
-                <Download className="w-5 h-5 text-primary-600 group-hover:text-white transition-colors" />
-              </div>
-              <div>
-                <p className="font-semibold text-neutral-800">Company Brochure</p>
-                <p className="text-sm text-neutral-500">Learn about Rezichem Healthcare</p>
-              </div>
-            </a>
-            <a
-              href="/downloads/product-catalogue.pdf"
-              download
-              className="card p-6 flex items-center gap-4 group"
-            >
-              <div className="w-12 h-12 bg-accent-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-accent-500 transition-colors">
-                <Download className="w-5 h-5 text-accent-600 group-hover:text-white transition-colors" />
-              </div>
-              <div>
-                <p className="font-semibold text-neutral-800">Product Catalogue</p>
-                <p className="text-sm text-neutral-500">Complete list of our products</p>
-              </div>
-            </a>
-          </div>
-        </div>
-      </section>
 
       {/* ── Business Opportunity ─────────────────────────────────────────── */}
       <section className="section-pad bg-gradient-to-br from-primary-800 to-primary-900 text-white">

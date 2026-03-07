@@ -64,3 +64,21 @@ DROP TRIGGER IF EXISTS products_updated_at ON products;
 CREATE TRIGGER products_updated_at
   BEFORE UPDATE ON products
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ─── Site assets (download links) ───────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS site_assets (
+  key        VARCHAR(80) PRIMARY KEY,
+  url        TEXT        NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Default fallback links for brochure/catalogue, logo and social media
+INSERT INTO site_assets (key, url) VALUES
+  ('company_brochure_pdf_url', '/downloads/company-brochure.pdf'),
+  ('product_catalogue_pdf_url', '/downloads/product-catalogue.pdf'),
+  ('company_logo_url', ''),
+  ('social_linkedin_url', ''),
+  ('social_facebook_url', ''),
+  ('social_instagram_url', '')
+ON CONFLICT (key) DO NOTHING;

@@ -78,10 +78,6 @@ export default function ContactPage() {
                     <a href="mailto:rezichemhealthcarepvtltd@gmail.com" className="text-neutral-600 hover:text-primary-600 transition-colors break-all">
                       rezichemhealthcarepvtltd@gmail.com
                     </a>
-                    <br />
-                    <a href="mailto:rezichemhealthcarepvtltd@yahoo.in" className="text-neutral-600 hover:text-primary-600 transition-colors break-all text-sm">
-                      rezichemhealthcarepvtltd@yahoo.in
-                    </a>
                   </div>
                 </div>
 
@@ -91,9 +87,14 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="font-semibold text-neutral-700 mb-1">Website</p>
-                    <a href="https://www.rezichem.co.in" target="_blank" rel="noopener noreferrer" className="text-neutral-600 hover:text-primary-600 transition-colors">
-                      www.rezichem.co.in
-                    </a>
+                    <div className="space-y-1">
+                      <a href="https://www.rezichem.co.in" target="_blank" rel="noopener noreferrer" className="block text-neutral-600 hover:text-primary-600 transition-colors">
+                        www.rezichem.co.in
+                      </a>
+                      <a href="https://www.rezichem.com" target="_blank" rel="noopener noreferrer" className="block text-neutral-600 hover:text-primary-600 transition-colors">
+                        www.rezichem.com
+                      </a>
+                    </div>
                   </div>
                 </div>
 

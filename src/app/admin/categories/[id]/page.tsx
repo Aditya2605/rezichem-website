@@ -16,6 +16,8 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
   const [saving, setSaving]   = useState(false);
   const [msg, setMsg]         = useState('');
   const [isError, setIsError] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState('');
 
   useEffect(() => {
     fetch(`/api/categories/${params.id}`)
@@ -66,6 +68,41 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!form.slug.trim()) {
+      setUploadError('Enter category slug before uploading image.');
+      e.target.value = '';
+      return;
+    }
+
+    setUploadError('');
+    setUploadingImage(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('slug', form.slug);
+
+      const res = await fetch('/api/uploads/category-image/direct', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Image upload failed');
+
+      const nextUrl = String(data.versionedUrl || data.fileUrl || '');
+      if (!nextUrl) throw new Error('Upload completed but no file URL returned');
+      setForm(prev => ({ ...prev, image_url: nextUrl }));
+    } catch (err: unknown) {
+      setUploadError(err instanceof Error ? err.message : 'Image upload failed');
+    } finally {
+      setUploadingImage(false);
+      e.target.value = '';
+    }
+  };
+
   const inputClass = 'w-full px-3 py-2.5 text-sm border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-300 transition';
   const labelClass = 'block text-xs font-semibold text-neutral-600 mb-1.5';
 
@@ -110,12 +147,34 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
         </div>
 
         <div>
-          <label className={labelClass}>Image URL</label>
-          <input name="image_url" value={form.image_url} onChange={handleChange} className={inputClass} placeholder="https://..." />
+          <label className={labelClass}>Category Image</label>
+          <div className="space-y-3">
+            <input
+              type="file"
+              accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+              onChange={handleImageUpload}
+              className={inputClass}
+            />
+            {uploadingImage && (
+              <p className="text-xs text-primary-600 flex items-center gap-1">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading image...
+              </p>
+            )}
+            {uploadError && (
+              <p className="text-xs text-red-600">{uploadError}</p>
+            )}
+            <input name="image_url" value={form.image_url} onChange={handleChange} className={inputClass} placeholder="Or paste image URL" />
+            {form.image_url && (
+              <div className="w-44 h-28 rounded-lg overflow-hidden border border-neutral-200 bg-neutral-50">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={form.image_url} alt="Category preview" className="w-full h-full object-cover" />
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex gap-3 pt-2">
-          <button type="submit" disabled={saving} className="btn-primary">
+          <button type="submit" disabled={saving || uploadingImage} className="btn-primary">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {saving ? 'Saving...' : 'Save Changes'}
           </button>

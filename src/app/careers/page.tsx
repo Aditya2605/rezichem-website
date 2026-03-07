@@ -41,35 +41,26 @@ export default function CareersPage() {
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
-            <a
-              href="mailto:careers@rezichem.com"
-              className="card p-6 flex items-center gap-4 group hover:border-primary-200"
-            >
-              <div className="w-12 h-12 bg-primary-50 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-primary-600 transition-colors">
-                <Mail className="w-5 h-5 text-primary-600 group-hover:text-white transition-colors" />
-              </div>
-              <div>
-                <p className="text-xs text-neutral-500 mb-0.5">Email Us</p>
-                <p className="font-semibold text-neutral-800">careers@rezichem.com</p>
-              </div>
-            </a>
-            <a
-              href="tel:+911234567890"
-              className="card p-6 flex items-center gap-4 group hover:border-primary-200"
-            >
-              <div className="w-12 h-12 bg-primary-50 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-primary-600 transition-colors">
-                <Phone className="w-5 h-5 text-primary-600 group-hover:text-white transition-colors" />
-              </div>
-              <div>
-                <p className="text-xs text-neutral-500 mb-0.5">Call Us</p>
-                <p className="font-semibold text-neutral-800">+91 12345 67890</p>
-              </div>
-            </a>
+          <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-6">
+            <p className="text-sm text-neutral-600 mb-4">For careers and HR queries, use the same official contact details:</p>
+            <div className="space-y-3 text-sm">
+              <a href="mailto:rezichemhealthcarepvtltd@gmail.com" className="flex items-center gap-2.5 text-neutral-700 hover:text-primary-600 transition-colors">
+                <Mail className="w-4 h-4 text-primary-600" />
+                rezichemhealthcarepvtltd@gmail.com
+              </a>
+              <a href="tel:+919904257395" className="flex items-center gap-2.5 text-neutral-700 hover:text-primary-600 transition-colors">
+                <Phone className="w-4 h-4 text-primary-600" />
+                +91 99042 57395
+              </a>
+              <a href="tel:+919430257395" className="flex items-center gap-2.5 text-neutral-700 hover:text-primary-600 transition-colors">
+                <Phone className="w-4 h-4 text-primary-600" />
+                +91 94302 57395
+              </a>
+            </div>
           </div>
 
           <div className="mt-8 bg-primary-50 border border-primary-100 rounded-2xl p-6 text-sm text-primary-800 leading-relaxed">
-            <strong>How to apply:</strong> Send your resume and a brief introduction to <a href="mailto:careers@rezichem.com" className="underline">careers@rezichem.com</a>. Our HR team will get back to you within 5 business days if your profile matches our requirements.
+            <strong>How to apply:</strong> Send your resume and a brief introduction to <a href="mailto:rezichemhealthcarepvtltd@gmail.com" className="underline">rezichemhealthcarepvtltd@gmail.com</a>. Our HR team will get back to you within 5 business days if your profile matches our requirements.
           </div>
         </div>
       </section>

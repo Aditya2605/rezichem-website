@@ -1,18 +1,11 @@
-import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { ADMIN_SESSION_COOKIE, verifyAdminSessionToken } from '@/lib/admin-auth';
 
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
-const ALLOWED_TYPES = new Set([
-  'image/jpeg',
-  'image/jpg',
-  'image/png',
-  'image/webp',
-  'image/gif',
-]);
+const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
+const ALLOWED_TYPES = new Set(['application/pdf']);
+const ALLOWED_ASSET_TYPES = new Set(['brochure', 'catalogue']);
 
 function sanitizeFilename(name: string): string {
   return name
@@ -20,7 +13,7 @@ function sanitizeFilename(name: string): string {
     .replace(/\s+/g, '-')
     .replace(/[^a-z0-9._-]/g, '')
     .replace(/-+/g, '-')
-    .slice(0, 80);
+    .slice(0, 100);
 }
 
 function requiredEnv(name: string): string {
@@ -36,18 +29,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { filename, contentType, size } = await req.json();
+    const form = await req.formData();
+    const file = form.get('file');
+    const assetType = form.get('assetType');
 
-    if (!filename || !contentType || typeof size !== 'number') {
-      return NextResponse.json({ error: 'filename, contentType and size are required' }, { status: 400 });
+    if (!(file instanceof File) || typeof assetType !== 'string') {
+      return NextResponse.json({ error: 'file and assetType are required' }, { status: 400 });
     }
 
-    if (!ALLOWED_TYPES.has(contentType)) {
-      return NextResponse.json({ error: 'Unsupported file type' }, { status: 400 });
+    if (!ALLOWED_ASSET_TYPES.has(assetType)) {
+      return NextResponse.json({ error: 'Invalid assetType' }, { status: 400 });
     }
 
-    if (size > MAX_FILE_SIZE_BYTES) {
-      return NextResponse.json({ error: 'File too large (max 5MB)' }, { status: 400 });
+    if (!ALLOWED_TYPES.has(file.type)) {
+      return NextResponse.json({ error: 'Only PDF is supported' }, { status: 400 });
+    }
+
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      return NextResponse.json({ error: 'File too large (max 20MB)' }, { status: 400 });
     }
 
     const region = requiredEnv('AWS_REGION');
@@ -62,28 +61,33 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const safeName = sanitizeFilename(filename);
-    const key = `products/${new Date().toISOString().slice(0, 10)}/${randomUUID()}-${safeName}`;
+    const safeName = sanitizeFilename(file.name.endsWith('.pdf') ? file.name : `${file.name}.pdf`);
+    const key = assetType === 'brochure'
+      ? 'banners/brochure/company-brochure.pdf'
+      : 'banners/catalogue/product-catalogue.pdf';
+    const body = Buffer.from(await file.arrayBuffer());
 
-    const command = new PutObjectCommand({
+    await client.send(new PutObjectCommand({
       Bucket: bucket,
       Key: key,
-      ContentType: contentType,
+      Body: body,
+      ContentType: file.type,
       CacheControl: 'public, max-age=31536000, immutable',
-    });
+    }));
 
-    const uploadUrl = await getSignedUrl(client, command, { expiresIn: 300 });
     const fileUrl = `${publicBaseUrl}/${key}`;
-
+    const version = Date.now().toString();
     return NextResponse.json({
-      uploadUrl,
       fileUrl,
+      versionedUrl: `${fileUrl}?v=${version}`,
+      version,
       key,
+      fileName: safeName,
       maxFileSizeBytes: MAX_FILE_SIZE_BYTES,
     });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Failed to create upload URL';
-    console.error('POST /api/uploads/product-image', err);
+    const msg = err instanceof Error ? err.message : 'Failed to upload PDF';
+    console.error('POST /api/uploads/site-pdf/direct', err);
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

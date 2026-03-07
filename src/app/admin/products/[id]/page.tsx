@@ -68,31 +68,31 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!form.slug.trim()) {
+      setUploadError('Enter product slug before uploading image.');
+      e.target.value = '';
+      return;
+    }
 
     setUploadError('');
     setUploadingImage(true);
 
     try {
-      const signRes = await fetch('/api/uploads/product-image', {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('slug', form.slug);
+      if (form.category_id) formData.append('categoryId', form.category_id);
+
+      const uploadRes = await fetch('/api/uploads/product-image/direct', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          filename: file.name,
-          contentType: file.type,
-          size: file.size,
-        }),
+        body: formData,
       });
-      const signData = await signRes.json();
-      if (!signRes.ok) throw new Error(signData.error ?? 'Failed to create upload URL');
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok) throw new Error(uploadData.error ?? 'Image upload failed');
 
-      const uploadRes = await fetch(signData.uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': file.type },
-        body: file,
-      });
-      if (!uploadRes.ok) throw new Error('Upload failed');
-
-      setForm(prev => ({ ...prev, image_url: signData.fileUrl }));
+      const nextUrl = String(uploadData.versionedUrl || uploadData.fileUrl || '');
+      if (!nextUrl) throw new Error('Upload completed but no file URL returned');
+      setForm(prev => ({ ...prev, image_url: nextUrl }));
     } catch (err: unknown) {
       setUploadError(err instanceof Error ? err.message : 'Image upload failed');
     } finally {

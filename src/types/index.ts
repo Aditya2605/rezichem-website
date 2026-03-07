@@ -30,3 +30,9 @@ export interface SearchResult {
   query: string;
   total: number;
 }
+
+export interface SiteAsset {
+  key: string;
+  url: string;
+  updated_at?: string;
+}

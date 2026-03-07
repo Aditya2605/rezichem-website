@@ -21,6 +21,7 @@ export default function Header() {
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [companyLogoUrl, setCompanyLogoUrl] = useState('');
   const router = useRouter();
   const pathname = usePathname();
   const searchRef = useRef<HTMLDivElement>(null);
@@ -37,6 +38,17 @@ export default function Header() {
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/site-assets')
+      .then(r => r.json())
+      .then(d => {
+        const assets = (d.assets ?? []) as Array<{ key: string; url: string }>;
+        const logo = assets.find(a => a.key === 'company_logo_url')?.url ?? '';
+        setCompanyLogoUrl(logo);
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -94,9 +106,14 @@ export default function Header() {
         <div className="flex items-center h-16 gap-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-9 h-9 bg-primary-600 rounded-lg flex items-center justify-center">
-              <Pill className="w-5 h-5 text-white" />
-            </div>
+            {companyLogoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={companyLogoUrl} alt="Rezichem logo" className="h-9 w-auto object-contain" />
+            ) : (
+              <div className="w-9 h-9 bg-primary-600 rounded-lg flex items-center justify-center">
+                <Pill className="w-5 h-5 text-white" />
+              </div>
+            )}
             <div className="hidden sm:block">
               <span className="font-display text-lg font-bold text-primary-700 leading-tight block">Rezichem</span>
               <span className="text-[10px] font-medium text-neutral-500 tracking-widest uppercase block -mt-0.5">Healthcare</span>
