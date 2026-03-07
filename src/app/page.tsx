@@ -49,7 +49,7 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    fetch('/api/site-assets')
+    fetch('/api/site-assets', { cache: 'no-store' })
       .then(r => r.json())
       .then(d => {
         const assets = (d.assets ?? []) as Array<{ key: string; url: string }>;

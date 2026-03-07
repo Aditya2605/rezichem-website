@@ -41,7 +41,7 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    fetch('/api/site-assets')
+    fetch('/api/site-assets', { cache: 'no-store' })
       .then(r => r.json())
       .then(d => {
         const assets = (d.assets ?? []) as Array<{ key: string; url: string }>;
@@ -105,10 +105,14 @@ export default function Header() {
       <div className="container-xl">
         <div className="flex items-center h-16 gap-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 flex-shrink-0">
+          <Link href="/" className="flex items-center gap-1.5 flex-shrink-0">
             {companyLogoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={companyLogoUrl} alt="Rezichem logo" className="h-9 w-auto object-contain" />
+              <img
+                src={companyLogoUrl}
+                alt="Rezichem logo"
+                className="h-11 md:h-12 w-auto max-w-[170px] object-contain"
+              />
             ) : (
               <div className="w-9 h-9 bg-primary-600 rounded-lg flex items-center justify-center">
                 <Pill className="w-5 h-5 text-white" />

@@ -15,7 +15,7 @@ export default function Footer() {
   });
 
   useEffect(() => {
-    fetch('/api/site-assets')
+    fetch('/api/site-assets', { cache: 'no-store' })
       .then(r => r.json())
       .then(d => {
         const assets = (d.assets ?? []) as Array<{ key: string; url: string }>;
@@ -44,8 +44,10 @@ export default function Footer() {
           <div>
             <div className="flex items-center gap-2 mb-4">
               {assets.logo ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={assets.logo} alt="Rezichem logo" className="h-8 w-auto object-contain" />
+                <div className="bg-white rounded-lg px-2 py-1.5 shadow-sm border border-neutral-200/60">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={assets.logo} alt="Rezichem logo" className="h-9 w-auto max-w-[170px] object-contain" />
+                </div>
               ) : (
                 <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
                   <Pill className="w-4 h-4 text-white" />

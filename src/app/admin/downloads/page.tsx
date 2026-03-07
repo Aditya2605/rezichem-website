@@ -27,7 +27,7 @@ export default function AdminDownloadsPage() {
   const [isError, setIsError] = useState(false);
 
   useEffect(() => {
-    fetch('/api/site-assets')
+    fetch('/api/site-assets', { cache: 'no-store' })
       .then(r => r.json())
       .then(d => {
         const rows = (d.assets ?? []) as Array<{ key: UrlAssetKey; url: string }>;

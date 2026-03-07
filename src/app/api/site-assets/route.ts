@@ -4,6 +4,8 @@ import { getSiteAssets, getSiteAssetsMap, upsertSiteAsset } from '@/lib/db';
 import { deleteS3ObjectByPublicUrl, extractKeyFromPublicUrl } from '@/lib/s3';
 import { ADMIN_SESSION_COOKIE, verifyAdminSessionToken } from '@/lib/admin-auth';
 
+export const dynamic = 'force-dynamic';
+
 const ALLOWED_KEYS = new Set([
   'company_brochure_pdf_url',
   'product_catalogue_pdf_url',
@@ -36,7 +38,10 @@ function sanitizeAssetUrl(url: unknown): string | null {
 export async function GET() {
   try {
     const assets = await getSiteAssets();
-    return NextResponse.json({ assets });
+    return NextResponse.json(
+      { assets },
+      { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate' } }
+    );
   } catch (err) {
     console.error('GET /api/site-assets', err);
     return NextResponse.json({ error: 'Failed to fetch site assets' }, { status: 500 });
