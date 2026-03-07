@@ -4,6 +4,8 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rezichem.com';
+const S3_BASE = process.env.AWS_S3_PUBLIC_BASE_URL?.replace(/\/$/, '');
+const COMPANY_LOGO_ICON = S3_BASE ? `${S3_BASE}/banners/logo/company-logo` : '/favicon.ico';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -20,6 +22,11 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+  },
+  icons: {
+    icon: [{ url: COMPANY_LOGO_ICON }],
+    shortcut: [{ url: COMPANY_LOGO_ICON }],
+    apple: [{ url: COMPANY_LOGO_ICON }],
   },
   openGraph: {
     type: 'website',
@@ -44,7 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     '@type': 'Organization',
     name: 'Rezichem Healthcare',
     url: SITE_URL,
-    logo: `${SITE_URL}/favicon.ico`,
+    logo: COMPANY_LOGO_ICON,
     contactPoint: [{
       '@type': 'ContactPoint',
       contactType: 'customer support',
