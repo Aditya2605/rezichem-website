@@ -11,12 +11,15 @@ export default function ProductsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const initialSearch = searchParams.get('search') ?? '';
+  const featuredOnly = searchParams.get('featured') === 'true';
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [view, setView] = useState<'categories' | 'search'>('categories');
+  const [isFeaturedLoading, setIsFeaturedLoading] = useState(false);
+  const [view, setView] = useState<'categories' | 'search' | 'featured'>(featuredOnly ? 'featured' : 'categories');
 
   useEffect(() => {
     fetch('/api/categories')
@@ -31,9 +34,32 @@ export default function ProductsContent() {
 
   useEffect(() => {
     const q = searchQuery.trim();
+    if (q.length >= 3) return;
+    if (!featuredOnly) {
+      setFeaturedProducts([]);
+      setView('categories');
+      return;
+    }
+
+    setIsFeaturedLoading(true);
+    fetch('/api/products?featured=true&limit=100')
+      .then(r => r.json())
+      .then(d => {
+        setFeaturedProducts(d.products ?? []);
+        setView('featured');
+      })
+      .catch(() => {
+        setFeaturedProducts([]);
+        setView('featured');
+      })
+      .finally(() => setIsFeaturedLoading(false));
+  }, [featuredOnly, searchQuery]);
+
+  useEffect(() => {
+    const q = searchQuery.trim();
     if (q.length < 3) {
       setIsSearching(false);
-      setView('categories');
+      setView(featuredOnly ? 'featured' : 'categories');
       setSearchResults([]);
       return;
     }
@@ -63,7 +89,7 @@ export default function ProductsContent() {
       clearTimeout(timeoutId);
       controller.abort();
     };
-  }, [searchQuery]);
+  }, [searchQuery, featuredOnly]);
 
   return (
     <div>
@@ -109,6 +135,43 @@ export default function ProductsContent() {
                   {categories.map(cat => (
                     <CategoryCard key={cat.id} category={cat} />
                   ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {view === 'featured' && (
+            <>
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h2 className="text-2xl font-display text-neutral-800">All Featured Products</h2>
+                  {!isFeaturedLoading && (
+                    <p className="text-neutral-500 text-sm mt-1">{featuredProducts.length} featured products</p>
+                  )}
+                </div>
+                <button
+                  onClick={() => { setView('categories'); router.push('/products'); }}
+                  className="text-sm text-primary-600 hover:underline flex items-center gap-1"
+                >
+                  <LayoutGrid className="w-4 h-4" /> View Categories
+                </button>
+              </div>
+
+              {isFeaturedLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="h-64 bg-neutral-100 rounded-2xl animate-pulse" />
+                  ))}
+                </div>
+              ) : featuredProducts.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {featuredProducts.map(p => <ProductCard key={p.id} product={p} />)}
+                </div>
+              ) : (
+                <div className="text-center py-20">
+                  <List className="w-12 h-12 text-neutral-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-neutral-600 mb-2">No featured products</h3>
+                  <p className="text-neutral-400 text-sm">Please check back later or browse all categories.</p>
                 </div>
               )}
             </>

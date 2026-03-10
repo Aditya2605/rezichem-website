@@ -127,26 +127,12 @@ export async function getRelatedProducts(
 }
 
 export async function getFeaturedProducts(limit = 6): Promise<Product[]> {
-  // Returns is_featured=true products first; falls back to first N active products
-  // if none are marked featured yet.
-  const featured = await query<Product>(`
+  return query<Product>(`
     SELECT p.*, c.name AS category_name, c.slug AS category_slug
     FROM products p
     JOIN categories c ON c.id = p.category_id
     WHERE p.is_active = true AND p.is_featured = true
     ORDER BY p.sort_order, p.name
-    LIMIT $1
-  `, [limit]);
-
-  if (featured.length > 0) return featured;
-
-  // Fallback: return first N active products alphabetically
-  return query<Product>(`
-    SELECT p.*, c.name AS category_name, c.slug AS category_slug
-    FROM products p
-    JOIN categories c ON c.id = p.category_id
-    WHERE p.is_active = true
-    ORDER BY p.name
     LIMIT $1
   `, [limit]);
 }

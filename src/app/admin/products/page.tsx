@@ -2,22 +2,25 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Plus, Pencil, Trash2, Search, Loader2 } from 'lucide-react';
 import { Product } from '@/types';
 
 export default function AdminProductsPage() {
+  const searchParams = useSearchParams();
+  const featuredOnly = searchParams.get('featured') === 'true';
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading]   = useState(true);
   const [search, setSearch]     = useState('');
   const [error, setError]       = useState('');
 
   useEffect(() => {
-    fetch('/api/products')
+    fetch(featuredOnly ? '/api/products?featured=true&limit=200' : '/api/products')
       .then(r => r.json())
       .then(d => setProducts(d.products ?? []))
       .catch(() => setError('Failed to load products'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [featuredOnly]);
 
   const handleDelete = async (id: number, name: string) => {
     if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
@@ -40,14 +43,23 @@ export default function AdminProductsPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-display font-bold text-neutral-800">Products</h1>
+          <h1 className="text-2xl font-display font-bold text-neutral-800">
+            {featuredOnly ? 'Featured Products' : 'Products'}
+          </h1>
           <p className="text-neutral-500 text-sm">
-            {loading ? 'Loading...' : `${products.length} total products`}
+            {loading ? 'Loading...' : `${products.length} ${featuredOnly ? 'featured' : 'total'} products`}
           </p>
         </div>
-        <Link href="/admin/products/new" className="btn-primary text-sm py-2 px-4">
-          <Plus className="w-4 h-4" /> Add Product
-        </Link>
+        <div className="flex items-center gap-2">
+          {featuredOnly && (
+            <Link href="/admin/products" className="btn-outline text-sm py-2 px-4">
+              View All Products
+            </Link>
+          )}
+          <Link href="/admin/products/new" className="btn-primary text-sm py-2 px-4">
+            <Plus className="w-4 h-4" /> Add Product
+          </Link>
+        </div>
       </div>
 
       {error && (

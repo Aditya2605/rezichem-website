@@ -34,7 +34,7 @@ export default function AdminDashboard() {
   const cards = [
     { icon: Package, label: 'Total Products',    value: stats?.totalProducts,    href: '/admin/products',   color: 'bg-blue-50 text-blue-600' },
     { icon: Tag,     label: 'Categories',         value: stats?.totalCategories,  href: '/admin/categories', color: 'bg-purple-50 text-purple-600' },
-    { icon: Star,    label: 'Featured Products',  value: stats?.featuredProducts, href: '/admin/products',   color: 'bg-amber-50 text-amber-600' },
+    { icon: Star,    label: 'Featured Products',  value: stats?.featuredProducts, href: '/admin/products?featured=true',   color: 'bg-amber-50 text-amber-600' },
   ];
 
   return (

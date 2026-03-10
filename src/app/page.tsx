@@ -205,7 +205,7 @@ export default function HomePage() {
                 <p className="text-primary-600 text-sm font-semibold tracking-widest uppercase mb-2">Our Products</p>
                 <h2 className="text-3xl md:text-4xl font-display text-neutral-800">Featured Products</h2>
               </div>
-              <Link href="/products" className="hidden sm:flex items-center gap-1 text-primary-600 font-medium text-sm hover:underline">
+              <Link href="/products?featured=true" className="hidden sm:flex items-center gap-1 text-primary-600 font-medium text-sm hover:underline">
                 View All <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -223,7 +223,7 @@ export default function HomePage() {
               ))}
             </div>
             <div className="text-center mt-10">
-              <Link href="/products" className="btn-outline">
+              <Link href="/products?featured=true" className="btn-outline">
                 View All Products <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
